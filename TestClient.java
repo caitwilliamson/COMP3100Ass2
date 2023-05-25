@@ -73,26 +73,38 @@ class TestClient{
                         servers[i]=in.readLine();
                     }
 
+                    
+                    int globalBestWJobs=0;
                     for(int i=0; i<nRecs; i++){
+
                         String[] serverInfo = servers[i].split(" ");
                         serverType = serverInfo[0];
                         serverID = serverInfo[1];
                         int serverWJobs = Integer.valueOf(serverInfo[7]);
+                        if(i==0){
+                            globalBestWJobs=serverWJobs;
+                        }
                         int serverRJobs = Integer.valueOf(serverInfo[8]);
 
-                        if(serverWJobs==0 && serverRJobs==0 && !bestServerFound){
+                        //try to see the server with the least waiting jobs and then 
+                        if(serverWJobs==0 && !bestServerFound){
                             bestServerFound=true;
                             serverNum=i;
                             
                         }
-                    }
-                    if(!bestServerFound){
-                        if(RR>=nRecs){
-                            RR=0;
+
+                        if(serverWJobs<globalBestWJobs){
+                            serverNum=i;
                         }
-                        serverNum=0+RR;
-                        RR++;
+                        
                     }
+                    // if(!bestServerFound){
+                    //     if(RR>=nRecs){
+                    //         RR=0;
+                    //     }
+                    //     serverNum=0+RR;
+                    //     RR++;
+                    // }
 
                     String[] serverInfo = servers[serverNum].split(" ");
                     serverType = serverInfo[0];
