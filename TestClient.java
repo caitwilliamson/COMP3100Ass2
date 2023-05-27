@@ -23,7 +23,7 @@ class TestClient{
 
             //HANDSHAKE
             //Send HELO
-            out.write(("HELO\n").getBytes()); 
+            out.write("HELO\n".getBytes()); 
         
             //Recieve OK 
             String serverMessage = in.readLine();
@@ -38,46 +38,39 @@ class TestClient{
             out.write("REDY\n".getBytes());
             jobState=in.readLine();
 
-            while(!jobState.equals("NONE")){
-                //System.out.println("entering First loop");
-                //System.out.println(jobState);
+            while(!"NONE".equals(jobState)){
                 String[] jobInfo = jobState.split(" ",5);
                 String jobCommand=jobInfo[0];
 
-                if(jobCommand.equals("JOBN")){
+                if("JOBN".equals(jobCommand)){
                     String capInfo=jobInfo[4];
                     String jobID=jobInfo[2];
-                    //System.out.println("job is JOBN");
                     //Find available servers
                     out.write(("GETS Avail "+ capInfo + "\n").getBytes());
                     boolean availableServers=true;
                     //Recieve DATA nRecs recSize
                     serverMessage = in.readLine();
-                    System.out.println(serverMessage);
                     String [] arrOfMess = serverMessage.split(" ");
                     int nRecs = Integer.parseInt(arrOfMess[1]);
-                    System.out.println("nRecs: "+nRecs);
                     
                     //if no available servers
                     if(nRecs==0){
                         availableServers=false;
-                        out.write(("OK\n").getBytes());
-                        System.out.println("entering");
+                        out.write("OK\n".getBytes());
                         serverMessage = in.readLine();
-                        System.out.println(serverMessage);
                         
                         //Find capable servers
                         out.write(("GETS Capable "+ capInfo + "\n").getBytes()); 
                         //Recieve DATA nRecs recSize
                         serverMessage = in.readLine();
-                        System.out.println(serverMessage);
                         arrOfMess = serverMessage.split(" ");
                         nRecs = Integer.parseInt(arrOfMess[1]);
                     }
             
                     //Send OK
-                    out.write(("OK\n").getBytes());
+                    out.write("OK\n".getBytes());
                     boolean bestServerFound=false;
+                    boolean serverNoJobsFound=false;
                     String [] servers = new String[nRecs];
                     int serverNum=0;
                     String serverType = "";
@@ -91,31 +84,36 @@ class TestClient{
                     
                     int globalBestWJobs=0;
                     int globalBestRJobs=0;
-                    //finding the most suitable server
-
+                    //loop through to find the most suitable server 
                     for(int i=0; i<nRecs; i++){
+                        //if available servers, choose first one
                         if(availableServers){
                             serverNum=0;
                             break;
                         }
                         String[] serverInfo = servers[i].split(" ");
-                        serverType = serverInfo[0];
-                        serverID = serverInfo[1];
                         int serverWJobs = Integer.parseInt(serverInfo[7]);
                         int serverRJobs = Integer.parseInt(serverInfo[8]);
                         
+                        //clearing memory
+		                Arrays.fill(serverInfo, null);
+                        
+                        //initialise global bests for first server
                         if(i==0){
                             globalBestWJobs=serverWJobs;
                             globalBestRJobs=serverRJobs;
                         }
                         
+                        // Find the best server :
+
                         if(serverWJobs==0 && serverRJobs==0 && !bestServerFound){
                             bestServerFound=true;
                             serverNum=i;
                             break;
                         }
 
-                        if(serverWJobs==0 && !bestServerFound){
+                        if(serverWJobs==0 && !serverNoJobsFound){
+                            serverNoJobsFound=true;
                             globalBestWJobs=0;
                             serverNum=i;
                         }
@@ -134,10 +132,13 @@ class TestClient{
                         
                     }
 
-                    String[] serverInfo = servers[serverNum].split(" ");
-                    serverType = serverInfo[0];
-                    serverID = serverInfo[1];
-
+                    // Abstracting server info from selected server
+                    String[] bestServerInfo = servers[serverNum].split(" ");
+                    serverType = bestServerInfo[0];
+                    serverID = bestServerInfo[1];
+                    //clearing memory
+		            Arrays.fill(servers, null);
+		            Arrays.fill(bestServerInfo, null);
 
                     
                     //Ready to
@@ -147,30 +148,31 @@ class TestClient{
                     //Scheduling job
                     out.write(("SCHD "+jobID+" "+serverType+" "+serverID+"\n").getBytes());
                     in.readLine();
+                	//clearing memory
+		            Arrays.fill(jobInfo, null);
 
                 
 
                 }
                 else{
-                    //System.out.println("JCPL");
+                    //if JCPL do nothing
                 }
 
 
                 //REDY for next job and reading in
                 out.write("REDY\n".getBytes());
                 jobState = in.readLine();
-                //System.out.println("job state is:" + jobState);
 
 
             }
 
 
             //Send QUIT
-            out.write(("QUIT\n").getBytes());
+            out.write("QUIT\n".getBytes());
             
             //Recieve QUIT
             in.readLine();
-            //System.out.println("Goodbye and thank you for using this job scheduler :)");
+            System.out.println("Goodbye and thank you for using this job scheduler :)");
         
             //Close the socket
             in.close();
