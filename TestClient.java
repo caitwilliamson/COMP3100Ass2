@@ -14,7 +14,6 @@ class TestClient{
             //Connect to ds-server
             int serverPort = 50000;
             s=new Socket("localhost", serverPort); 
-            //System.out.println("Port number: "+s.getPort());  
             
             //Intialise input and output streams associated with socket
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
@@ -38,7 +37,6 @@ class TestClient{
             String jobState="";
             out.write("REDY\n".getBytes());
             jobState=in.readLine();
-            int RR=0;
 
             while(!jobState.equals("NONE")){
                 System.out.println("entering First loop");
@@ -53,13 +51,13 @@ class TestClient{
                     //Send gets message
                     out.write(("GETS Capable "+ capInfo + "\n").getBytes()); 
                     //Recieve DATA nRecs recSize
-                    String dataMessage = in.readLine();
-                    System.out.println(dataMessage);
+                    serverMessage = in.readLine();
+                    System.out.println(serverMessage);
 
                     //extract nRecs
-                    String [] arrOfMess = dataMessage.split(" ");
+                    String [] arrOfMess = serverMessage.split(" ");
                     System.out.println(Arrays.toString(arrOfMess));
-                    int nRecs = Integer.valueOf(arrOfMess[1]);
+                    int nRecs = Integer.parseInt(arrOfMess[1]);
             
                     //Send OK
                     out.write(("OK\n").getBytes());
@@ -75,22 +73,32 @@ class TestClient{
 
                     
                     int globalBestWJobs=0;
+                    int globalBestRJobs=0;
                     for(int i=0; i<nRecs; i++){
 
                         String[] serverInfo = servers[i].split(" ");
                         serverType = serverInfo[0];
                         serverID = serverInfo[1];
-                        int serverWJobs = Integer.valueOf(serverInfo[7]);
+                        int serverWJobs = Integer.parseInt(serverInfo[7]);
+                        int serverRJobs = Integer.parseInt(serverInfo[8]);
+                        
                         if(i==0){
                             globalBestWJobs=serverWJobs;
+                            globalBestRJobs=serverRJobs;
                         }
-                        int serverRJobs = Integer.valueOf(serverInfo[8]);
-
-                        //try to see the server with the least waiting jobs and then 
-                        if(serverWJobs==0 && !bestServerFound){
+                        
+                        if(serverWJobs==0 && serverRJobs==0 && !bestServerFound){
                             bestServerFound=true;
                             serverNum=i;
-                            
+                            break;
+                        }
+
+                        if(serverWJobs==0 && !bestServerFound){
+                            serverNum=i;
+                        }
+
+                        if(serverRJobs<globalBestRJobs && serverWJobs<globalBestWJobs){
+                            serverNum=i;
                         }
 
                         if(serverWJobs<globalBestWJobs){
@@ -98,42 +106,10 @@ class TestClient{
                         }
                         
                     }
-                    // if(!bestServerFound){
-                    //     if(RR>=nRecs){
-                    //         RR=0;
-                    //     }
-                    //     serverNum=0+RR;
-                    //     RR++;
-                    // }
 
                     String[] serverInfo = servers[serverNum].split(" ");
                     serverType = serverInfo[0];
                     serverID = serverInfo[1];
-
-                
-                    
-                    // while(!bestServerFound){
-                    //     System.out.println("entering serverReady loop");
-                    //     servers[serverNum]=in.readLine();
-                    //     String[] serverInfo = servers[serverNum].split(" ");
-                    //     //System.out.println(serverInfo);
-                    //     serverType = serverInfo[0];
-                    //     serverID = serverInfo[1];
-                    //     int serverWJobs = Integer.valueOf(serverInfo[7]);
-                    //     int serverRJobs = Integer.valueOf(serverInfo[8]);
-
-                    //     if(serverWJobs==0 && serverRJobs==0){
-                    //         bestServerFound=true;
-                    //         System.out.println(serverType);
-                    //     }
-
-                    //     if(serverNum==nRecs-1){
-                    //         bestServerFound=true;
-                    //         System.out.println("reached end of servers");
-                    //     }
-                    //     serverNum++;
-
-                    // }
 
 
                     
