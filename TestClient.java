@@ -39,24 +39,24 @@ class TestClient{
             jobState=in.readLine();
 
             while(!jobState.equals("NONE")){
-                System.out.println("entering First loop");
-                System.out.println(jobState);
+                //System.out.println("entering First loop");
+                //System.out.println(jobState);
                 String[] jobInfo = jobState.split(" ",5);
                 String jobCommand=jobInfo[0];
 
                 if(jobCommand.equals("JOBN")){
                     String capInfo=jobInfo[4];
                     String jobID=jobInfo[2];
-                    System.out.println("job is JOBN");
+                    //System.out.println("job is JOBN");
                     //Send gets message
                     out.write(("GETS Capable "+ capInfo + "\n").getBytes()); 
                     //Recieve DATA nRecs recSize
                     serverMessage = in.readLine();
-                    System.out.println(serverMessage);
+                    //System.out.println(serverMessage);
 
                     //extract nRecs
                     String [] arrOfMess = serverMessage.split(" ");
-                    System.out.println(Arrays.toString(arrOfMess));
+                    //System.out.println(Arrays.toString(arrOfMess));
                     int nRecs = Integer.parseInt(arrOfMess[1]);
             
                     //Send OK
@@ -74,18 +74,33 @@ class TestClient{
                     
                     int globalBestWJobs=0;
                     int globalBestRJobs=0;
+                    //int globalBestServerTime=0;
                     for(int i=0; i<nRecs; i++){
 
                         String[] serverInfo = servers[i].split(" ");
                         serverType = serverInfo[0];
                         serverID = serverInfo[1];
-                        int serverWJobs = Integer.parseInt(serverInfo[7]);
-                        int serverRJobs = Integer.parseInt(serverInfo[8]);
+                        //out.write(("EJWT "+serverType+" "+serverID+"\n").getBytes());
+                        //tring serverTimeTemp = in.readLine();
+                        //int serverTime = Integer.parseInt(serverTimeTemp);
+                         int serverWJobs = Integer.parseInt(serverInfo[7]);
+                         int serverRJobs = Integer.parseInt(serverInfo[8]);
                         
                         if(i==0){
-                            globalBestWJobs=serverWJobs;
-                            globalBestRJobs=serverRJobs;
+                            //globalBestServerTime=serverTime;
+                             globalBestWJobs=serverWJobs;
+                             globalBestRJobs=serverRJobs;
                         }
+
+                        // if(serverTime==0){
+                        //     serverNum=i;
+                        //     break;
+                        // }
+
+                        // if(serverTime<globalBestServerTime){
+                        //     globalBestRJobs=serverTime;
+                        //     serverNum=i;
+                        // }
                         
                         if(serverWJobs==0 && serverRJobs==0 && !bestServerFound){
                             bestServerFound=true;
@@ -94,16 +109,23 @@ class TestClient{
                         }
 
                         if(serverWJobs==0 && !bestServerFound){
+                            globalBestWJobs=0;
                             serverNum=i;
                         }
 
+
+
                         if(serverRJobs<globalBestRJobs && serverWJobs<globalBestWJobs){
+                            globalBestRJobs=serverRJobs;
+                            globalBestWJobs=serverWJobs;
                             serverNum=i;
                         }
 
                         if(serverWJobs<globalBestWJobs){
+                            globalBestWJobs=serverWJobs;
                             serverNum=i;
                         }
+
                         
                     }
 
@@ -125,14 +147,14 @@ class TestClient{
 
                 }
                 else{
-                    System.out.println("JCPL");
+                    //System.out.println("JCPL");
                 }
 
 
                 //REDY for next job and reading in
                 out.write("REDY\n".getBytes());
                 jobState = in.readLine();
-                System.out.println("job state is:" + jobState);
+                //System.out.println("job state is:" + jobState);
 
 
             }
@@ -143,7 +165,7 @@ class TestClient{
             
             //Recieve QUIT
             in.readLine();
-            System.out.println("Goodbye and thank you for using this job scheduler :)");
+            //System.out.println("Goodbye and thank you for using this job scheduler :)");
         
             //Close the socket
             in.close();
