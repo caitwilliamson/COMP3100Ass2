@@ -48,16 +48,32 @@ class TestClient{
                     String capInfo=jobInfo[4];
                     String jobID=jobInfo[2];
                     //System.out.println("job is JOBN");
-                    //Send gets message
-                    out.write(("GETS Capable "+ capInfo + "\n").getBytes()); 
+                    //Find available servers
+                    out.write(("GETS Avail "+ capInfo + "\n").getBytes());
+                    boolean availableServers=true;
                     //Recieve DATA nRecs recSize
                     serverMessage = in.readLine();
-                    //System.out.println(serverMessage);
-
-                    //extract nRecs
+                    System.out.println(serverMessage);
                     String [] arrOfMess = serverMessage.split(" ");
-                    //System.out.println(Arrays.toString(arrOfMess));
                     int nRecs = Integer.parseInt(arrOfMess[1]);
+                    System.out.println("nRecs: "+nRecs);
+                    
+                    //if no available servers
+                    if(nRecs==0){
+                        availableServers=false;
+                        out.write(("OK\n").getBytes());
+                        System.out.println("entering");
+                        serverMessage = in.readLine();
+                        System.out.println(serverMessage);
+                        
+                        //Find capable servers
+                        out.write(("GETS Capable "+ capInfo + "\n").getBytes()); 
+                        //Recieve DATA nRecs recSize
+                        serverMessage = in.readLine();
+                        System.out.println(serverMessage);
+                        arrOfMess = serverMessage.split(" ");
+                        nRecs = Integer.parseInt(arrOfMess[1]);
+                    }
             
                     //Send OK
                     out.write(("OK\n").getBytes());
@@ -67,6 +83,7 @@ class TestClient{
                     String serverType = "";
                     String serverID = "";
 
+                    //reading in servers
                     for(int i=0; i<nRecs; i++){
                         servers[i]=in.readLine();
                     }
@@ -74,33 +91,23 @@ class TestClient{
                     
                     int globalBestWJobs=0;
                     int globalBestRJobs=0;
-                    //int globalBestServerTime=0;
-                    for(int i=0; i<nRecs; i++){
+                    //finding the most suitable server
 
+                    for(int i=0; i<nRecs; i++){
+                        if(availableServers){
+                            serverNum=0;
+                            break;
+                        }
                         String[] serverInfo = servers[i].split(" ");
                         serverType = serverInfo[0];
                         serverID = serverInfo[1];
-                        //out.write(("EJWT "+serverType+" "+serverID+"\n").getBytes());
-                        //tring serverTimeTemp = in.readLine();
-                        //int serverTime = Integer.parseInt(serverTimeTemp);
-                         int serverWJobs = Integer.parseInt(serverInfo[7]);
-                         int serverRJobs = Integer.parseInt(serverInfo[8]);
+                        int serverWJobs = Integer.parseInt(serverInfo[7]);
+                        int serverRJobs = Integer.parseInt(serverInfo[8]);
                         
                         if(i==0){
-                            //globalBestServerTime=serverTime;
-                             globalBestWJobs=serverWJobs;
-                             globalBestRJobs=serverRJobs;
+                            globalBestWJobs=serverWJobs;
+                            globalBestRJobs=serverRJobs;
                         }
-
-                        // if(serverTime==0){
-                        //     serverNum=i;
-                        //     break;
-                        // }
-
-                        // if(serverTime<globalBestServerTime){
-                        //     globalBestRJobs=serverTime;
-                        //     serverNum=i;
-                        // }
                         
                         if(serverWJobs==0 && serverRJobs==0 && !bestServerFound){
                             bestServerFound=true;
@@ -113,9 +120,7 @@ class TestClient{
                             serverNum=i;
                         }
 
-
-
-                        if(serverRJobs<globalBestRJobs && serverWJobs<globalBestWJobs){
+                        if(serverRJobs<globalBestRJobs && serverWJobs<=globalBestWJobs){
                             globalBestRJobs=serverRJobs;
                             globalBestWJobs=serverWJobs;
                             serverNum=i;
